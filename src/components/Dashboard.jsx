@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
-function DashboardHeader({ score = 72 }) {
+function DashboardHeader({ score }) {
   return (
     <section className="hero-section">
       <div className="hero-copy">
@@ -34,6 +34,8 @@ function FinancialGauge({ score }) {
 
     function animate(now) {
       const progress = Math.min((now - start) / duration, 1);
+
+      // Elastic-like ease: f(t) = 1 - (1 - t)^4
       const eased = 1 - Math.pow(1 - progress, 4);
 
       setDisplayScore(Math.round(eased * score));
@@ -52,12 +54,6 @@ function FinancialGauge({ score }) {
   const circumference = 2 * Math.PI * radius;
   const progress = circumference - (displayScore / 100) * circumference;
 
-  const metrics = [
-    { label: "Payment Discipline", value: 80 },
-    { label: "Memory Completeness", value: 65 },
-    { label: "On-time Payments", value: 70 },
-  ];
-
   return (
     <motion.div
       className="score-gauge-card"
@@ -68,15 +64,12 @@ function FinancialGauge({ score }) {
       <div className="gauge-glow" />
 
       <svg className="score-gauge" viewBox="0 0 220 220">
-        <defs>
-          <linearGradient id="amethystGauge" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#5D3A9B" />
-            <stop offset="65%" stopColor="#8B5CF6" />
-            <stop offset="100%" stopColor="transparent" />
-          </linearGradient>
-        </defs>
-
-        <circle cx="110" cy="110" r={radius} className="gauge-track" />
+        <circle
+          cx="110"
+          cy="110"
+          r={radius}
+          className="gauge-track"
+        />
 
         <circle
           cx="110"
@@ -89,31 +82,10 @@ function FinancialGauge({ score }) {
       </svg>
 
       <div className="gauge-content">
-        <span>Financial Health Score</span>
+        <span>Financial Memory Score</span>
         <strong>{displayScore}</strong>
         <small>out of 100</small>
-        <p>Good</p>
       </div>
-
-      <div className="gauge-metrics">
-        {metrics.map((metric) => (
-          <div className="gauge-metric" key={metric.label}>
-            <div className="gauge-metric-row">
-              <span>{metric.label}</span>
-              <b>{metric.value}/100</b>
-            </div>
-
-            <div className="gauge-metric-bar">
-              <div style={{ width: `${metric.value}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <button className="gauge-insights-button">
-        View Full Insights
-        <ArrowRight size={16} />
-      </button>
     </motion.div>
   );
 }
