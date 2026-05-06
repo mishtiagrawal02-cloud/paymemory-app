@@ -1,26 +1,62 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
 
-function DashboardHeader({ score = 72 }) {
+function DashboardHeader({ score = 72, healthStatus = "Good" }) {
   return (
-    <section className="hero-section">
+    <motion.section
+      className="hero-section"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
       <div className="hero-copy">
-        <div className="hero-badge">
+        <motion.div
+          className="hero-badge"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
           <Sparkles size={16} />
-          AI-style financial memory dashboard
-        </div>
+          AI-Powered Financial Intelligence
+        </motion.div>
 
-        <h1>Remember every UPI payment with context.</h1>
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+        >
+          Remember every payment with intelligent context.
+        </motion.h1>
 
-        <p>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
           Track transactions, pending money, scheduled payments, split bills,
-          receipts, reminders, insights, and financial score.
-        </p>
+          receipts, reminders, insights, and financial health score.
+        </motion.p>
+
+        <motion.div
+          className="hero-features"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+        >
+          <div className="feature-tag">
+            <TrendingUp size={14} />
+            Smart Analytics
+          </div>
+          <div className="feature-tag">
+            <ShieldCheck size={14} />
+            Secure Memory
+          </div>
+        </motion.div>
       </div>
 
       <FinancialGauge score={score} />
-    </section>
+    </motion.section>
   );
 }
 
@@ -29,13 +65,12 @@ function FinancialGauge({ score }) {
 
   useEffect(() => {
     let frame;
-    const duration = 1200;
+    const duration = 1500;
     const start = performance.now();
 
     function animate(now) {
       const progress = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 4);
-
       setDisplayScore(Math.round(eased * score));
 
       if (progress < 1) {
@@ -44,11 +79,10 @@ function FinancialGauge({ score }) {
     }
 
     frame = requestAnimationFrame(animate);
-
     return () => cancelAnimationFrame(frame);
   }, [score]);
 
-  const radius = 82;
+  const radius = 86;
   const circumference = 2 * Math.PI * radius;
   const progress = circumference - (displayScore / 100) * circumference;
 
@@ -61,59 +95,67 @@ function FinancialGauge({ score }) {
   return (
     <motion.div
       className="score-gauge-card"
-      initial={{ opacity: 0, scale: 0.9, y: 24 }}
+      initial={{ opacity: 0, scale: 0.85, y: 30 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: "easeOut" }}
+      transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
+      whileHover={{ scale: 1.02 }}
     >
-      <div className="gauge-glow" />
+      <motion.div
+        className="gauge-glow"
+        animate={{
+          scale: [1, 1.1, 1],
+          opacity: [0.5, 0.8, 0.5],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
 
       <svg className="score-gauge" viewBox="0 0 220 220">
         <defs>
-          <linearGradient id="amethystGauge" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#5D3A9B" />
-            <stop offset="65%" stopColor="#8B5CF6" />
-            <stop offset="100%" stopColor="transparent" />
+          <linearGradient id="premiumGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#8B5CF6" />
+            <stop offset="50%" stopColor="#A78BFA" />
+            <stop offset="100%" stopColor="#C4B5FD" />
           </linearGradient>
         </defs>
 
         <circle cx="110" cy="110" r={radius} className="gauge-track" />
 
-        <circle
+        <motion.circle
           cx="110"
           cy="110"
           r={radius}
           className="gauge-progress"
+          stroke="url(#premiumGradient)"
           strokeDasharray={circumference}
           strokeDashoffset={progress}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: progress }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
         />
       </svg>
 
-      <div className="gauge-content">
-        <span>Financial Health Score</span>
+      <motion.div
+        className="gauge-content"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8, duration: 0.5 }}
+      >
+        <span>Financial Health</span>
         <strong>{displayScore}</strong>
         <small>out of 100</small>
-        <p>Good</p>
-      </div>
-
-      <div className="gauge-metrics">
-        {metrics.map((metric) => (
-          <div className="gauge-metric" key={metric.label}>
-            <div className="gauge-metric-row">
-              <span>{metric.label}</span>
-              <b>{metric.value}/100</b>
-            </div>
-
-            <div className="gauge-metric-bar">
-              <div style={{ width: `${metric.value}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <button className="gauge-insights-button">
-        View Full Insights
-        <ArrowRight size={16} />
-      </button>
+        <motion.div
+          className="score-label"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 0.4 }}
+        >
+          {displayScore >= 80 ? "Excellent" : displayScore >= 60 ? "Good" : "Needs Attention"}
+        </motion.div>
+      </motion.div>
     </motion.div>
   );
 }

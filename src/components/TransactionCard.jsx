@@ -6,6 +6,7 @@ import {
   Split,
   ArrowUpRight,
   CalendarDays,
+  Sparkles,
 } from "lucide-react";
 
 function TransactionCard({ transaction, selected, onClick }) {
@@ -16,7 +17,7 @@ function TransactionCard({ transaction, selected, onClick }) {
       layoutId={`transaction-card-${transaction.id}`}
       onClick={onClick}
       className={`glass-card transaction-card ${selected ? "active-card" : ""}`}
-      whileHover={{ y: -6, scale: 1.01 }}
+      whileHover={{ y: -8, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       transition={{
         type: "spring",
@@ -24,7 +25,13 @@ function TransactionCard({ transaction, selected, onClick }) {
         damping: 20,
       }}
     >
-      <div className="transaction-card-glow" />
+      <motion.div
+        className="transaction-card-glow"
+        animate={{
+          opacity: selected ? 0.6 : 0.15,
+        }}
+        transition={{ duration: 0.3 }}
+      />
 
       <div className="card-top">
         <div>
@@ -32,9 +39,14 @@ function TransactionCard({ transaction, selected, onClick }) {
             <h3>{transaction.name}</h3>
 
             {selected && (
-              <span className="selected-dot">
+              <motion.span
+                className="selected-dot"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200 }}
+              >
                 <ArrowUpRight size={13} />
-              </span>
+              </motion.span>
             )}
           </div>
 
@@ -42,9 +54,14 @@ function TransactionCard({ transaction, selected, onClick }) {
         </div>
 
         <div className="amount-block">
-          <span className={`amount ${isReceived ? "amount-positive" : ""}`}>
+          <motion.span
+            className={`amount ${isReceived ? "amount-positive" : ""}`}
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200 }}
+          >
             {isReceived ? "+" : "-"}₹{transaction.amount}
-          </span>
+          </motion.span>
           <small>{isReceived ? "Received" : "Spent"}</small>
         </div>
       </div>
@@ -60,10 +77,17 @@ function TransactionCard({ transaction, selected, onClick }) {
       <p className="transaction-note">{transaction.note}</p>
 
       <div className="tag-row">
-        {transaction.tags.slice(0, 3).map((tag) => (
-          <span key={tag} className="tag-pill">
+        {transaction.tags.slice(0, 3).map((tag, index) => (
+          <motion.span
+            key={tag}
+            className="tag-pill"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.05 }}
+            whileHover={{ scale: 1.05 }}
+          >
             #{tag}
-          </span>
+          </motion.span>
         ))}
       </div>
 
@@ -75,21 +99,33 @@ function TransactionCard({ transaction, selected, onClick }) {
 
         <div className="card-icons">
           {transaction.pinned && (
-            <div className="icon-chip" title="Pinned">
+            <motion.div
+              className="icon-chip"
+              title="Pinned"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+            >
               <Pin size={15} />
-            </div>
+            </motion.div>
           )}
 
           {transaction.split && (
-            <div className="icon-chip" title="Split Payment">
+            <motion.div
+              className="icon-chip"
+              title="Split Payment"
+              whileHover={{ scale: 1.1, rotate: -5 }}
+            >
               <Split size={15} />
-            </div>
+            </motion.div>
           )}
 
           {transaction.recurring !== "none" && (
-            <div className="icon-chip" title="Recurring">
+            <motion.div
+              className="icon-chip"
+              title="Recurring"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+            >
               <Repeat size={15} />
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

@@ -1,4 +1,5 @@
-import { X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Sparkles, Hash } from "lucide-react";
 import { useState } from "react";
 
 function TagManager({ transaction, onUpdate }) {
@@ -26,37 +27,58 @@ function TagManager({ transaction, onUpdate }) {
   }
 
   return (
-    <div className="mt-5">
-      <p className="text-sm font-black">Tags</p>
+    <div className="tag-manager">
+      <p className="section-label">
+        <Hash size={14} />
+        Tags
+      </p>
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        {transaction.tags.map((tag) => (
-          <span
-            key={tag}
-            className="inline-flex items-center gap-2 rounded-full bg-cyan-300/10 px-3 py-1.5 text-sm font-bold text-cyan-100"
-          >
-            #{tag}
-            <button onClick={() => removeTag(tag)}>
-              <X size={14} />
-            </button>
-          </span>
-        ))}
-      </div>
+      <motion.div className="tag-list" layout>
+        <AnimatePresence mode="popLayout">
+          {transaction.tags.map((tag) => (
+            <motion.span
+              key={tag}
+              className="tag-pill"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.2 }}
+              layout
+            >
+              #{tag}
+              <motion.button
+                onClick={() => removeTag(tag)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X size={12} />
+              </motion.button>
+            </motion.span>
+          ))}
+        </AnimatePresence>
+      </motion.div>
 
-      <div className="mt-3 flex gap-2">
-        <input
+      <div className="tag-input-row">
+        <motion.input
           value={newTag}
           onChange={(e) => setNewTag(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addTag()}
-          placeholder="Add tag"
-          className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm outline-none focus:border-cyan-300"
+          placeholder="Add a tag..."
+          className="tag-input"
+          whileFocus={{
+            borderColor: "rgba(139, 92, 246, 0.5)",
+            boxShadow: "0 0 0 4px rgba(139, 92, 246, 0.1)",
+          }}
         />
-        <button
+        <motion.button
           onClick={addTag}
-          className="rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-black text-slate-950"
+          className="add-tag-button"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
+          <Sparkles size={16} />
           Add
-        </button>
+        </motion.button>
       </div>
     </div>
   );

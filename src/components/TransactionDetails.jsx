@@ -11,34 +11,47 @@ import {
   Repeat,
   Save,
   ShieldCheck,
+  Sparkles,
+  Trash2,
+  TrendingUp,
+  Wallet,
 } from "lucide-react";
 
 import TagManager from "./TagManager";
 import ReminderBox from "./ReminderBox";
 import { formatMoney } from "../utils/helpers";
 
-function TransactionDetails({ transaction, onUpdate }) {
+function TransactionDetails({ transaction, onUpdate, onDelete }) {
   const [note, setNote] = useState(transaction.note);
   const [reminder, setReminder] = useState(transaction.reminder);
+  const [paidAmount, setPaidAmount] = useState(
+    transaction.paidAmount ?? (transaction.amount - (transaction.pendingAmount ?? 0))
+  );
   const [saving, setSaving] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   useEffect(() => {
     setNote(transaction.note);
     setReminder(transaction.reminder);
+    setPaidAmount(transaction.paidAmount ?? (transaction.amount - (transaction.pendingAmount ?? 0)));
   }, [transaction]);
+
+  const totalAmount = transaction.totalAmount ?? transaction.amount;
+  const pendingAmount = Math.max(0, totalAmount - paidAmount);
+  const progress = totalAmount > 0 ? Math.min(100, Math.round((paidAmount / totalAmount) * 100)) : 0;
 
   function save() {
     setSaving(true);
-
     setTimeout(() => {
       onUpdate({
         ...transaction,
         note,
         reminder,
+        paidAmount: Number(paidAmount),
+        totalAmount,
+        pendingAmount,
         timeline: [...transaction.timeline, "Memory updated securely"],
       });
-
       setSaving(false);
     }, 900);
   }
@@ -46,14 +59,14 @@ function TransactionDetails({ transaction, onUpdate }) {
   return (
     <motion.aside
       key={transaction.id}
-      layoutId={`transaction-card-${transaction.id}`}
       className="details-panel"
-      initial={{ opacity: 0, x: 46 }}
+      initial={{ opacity: 0, x: 24 }}
       animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 24 }}
       transition={{
         type: "spring",
-        stiffness: 100,
-        damping: 20,
+        stiffness: 120,
+        damping: 22,
       }}
     >
       <div className="details-header">
@@ -63,7 +76,7 @@ function TransactionDetails({ transaction, onUpdate }) {
           <p className="upi-text">{transaction.upiId}</p>
         </div>
 
-        <button
+        <motion.button
           className="pin-button"
           onClick={() =>
             onUpdate({
@@ -71,17 +84,24 @@ function TransactionDetails({ transaction, onUpdate }) {
               pinned: !transaction.pinned,
             })
           }
+          whileHover={{ scale: 1.05, rotate: 5 }}
+          whileTap={{ scale: 0.95 }}
         >
           <Pin size={18} />
-        </button>
+        </motion.button>
       </div>
 
       {transaction.status === "settled" && (
-        <div className="trust-banner">
+        <motion.div
+          className="trust-banner"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <ShieldCheck size={18} />
           <span>Settled and memory-locked</span>
           <Lock size={15} />
-        </div>
+        </motion.div>
       )}
 
       <Section title="Core Transaction">
@@ -100,20 +120,82 @@ function TransactionDetails({ transaction, onUpdate }) {
         </div>
       </Section>
 
+      {totalAmount > 0 && (
+        <Section title="Payment Progress">
+          <div className="payment-progress-wrap">
+            <div className="payment-progress-amounts">
+              <div className="payment-progress-stat">
+                <span className="pp-label">Total</span>
+                <span className="pp-value">{formatMoney(totalAmount)}</span>
+              </div>
+              <div className="payment-progress-stat">
+                <span className="pp-label">Paid</span>
+                <span className="pp-value pp-paid">{formatMoney(paidAmount)}</span>
+              </div>
+              <div className="payment-progress-stat">
+                <span className="pp-label">Pending</span>
+                <span className="pp-value pp-pending">{formatMoney(pendingAmount)}</span>
+              </div>
+            </div>
+
+            <div className="payment-progress-bar-wrap">
+              <div className="payment-progress-bar-track">
+                <motion.div
+                  className="payment-progress-bar-fill"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.9, ease: "easeOut" }}
+                  style={{
+                    background: progress === 100
+                      ? "linear-gradient(90deg, #10b981, #34d399)"
+                      : progress >= 50
+                      ? "linear-gradient(90deg, #8b5cf6, #a78bfa)"
+                      : "linear-gradient(90deg, #f59e0b, #fbbf24)",
+                  }}
+                />
+              </div>
+              <span className="payment-progress-pct">{progress}%</span>
+            </div>
+
+            <div className="payment-paid-input-row">
+              <label className="section-label" style={{ marginBottom: 0 }}>Update Paid Amount (₹)</label>
+              <motion.input
+                type="number"
+                value={paidAmount}
+                min={0}
+                max={totalAmount}
+                onChange={(e) => setPaidAmount(Math.min(totalAmount, Math.max(0, Number(e.target.value))))}
+                placeholder="Amount paid so far..."
+                whileFocus={{
+                  borderColor: "rgba(139, 92, 246, 0.5)",
+                  boxShadow: "0 0 0 4px rgba(139, 92, 246, 0.1)",
+                }}
+              />
+            </div>
+          </div>
+        </Section>
+      )}
+
       <Section title="Contextual Memory">
         <label className="section-label">Memory Note</label>
-        <textarea
+        <motion.textarea
           value={note}
           onChange={(event) => setNote(event.target.value)}
           placeholder="Add why this payment happened..."
+          whileFocus={{
+            borderColor: "rgba(139, 92, 246, 0.5)",
+            boxShadow: "0 0 0 4px rgba(139, 92, 246, 0.1)",
+          }}
         />
 
         <TagManager transaction={transaction} onUpdate={onUpdate} />
       </Section>
 
-      <button
+      <motion.button
         className="advanced-toggle"
         onClick={() => setAdvancedOpen((prev) => !prev)}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
       >
         <span>Advanced Details</span>
 
@@ -123,7 +205,7 @@ function TransactionDetails({ transaction, onUpdate }) {
         >
           <ChevronDown size={18} />
         </motion.span>
-      </button>
+      </motion.button>
 
       <AnimatePresence>
         {advancedOpen && (
@@ -152,7 +234,7 @@ function TransactionDetails({ transaction, onUpdate }) {
               />
             </div>
 
-            <ReminderBox value={reminder} setValue={setReminder} />
+            <ReminderBox value={reminder} setValue={setReminder} scheduledDate={transaction.scheduledDate || transaction.dueDate} />
 
             <StatusSelector transaction={transaction} onUpdate={onUpdate} />
           </motion.div>
@@ -163,16 +245,38 @@ function TransactionDetails({ transaction, onUpdate }) {
         <AuditTrail items={transaction.timeline} />
       </Section>
 
-      <button className="save-memory-button" onClick={save} disabled={saving}>
-        {saving ? (
-          <span className="save-shimmer" />
-        ) : (
-          <>
-            <Save size={18} />
-            Save Memory
-          </>
-        )}
-      </button>
+      <div className="details-actions">
+        <motion.button
+          className="delete-button"
+          onClick={() => onDelete(transaction.id)}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Trash2 size={18} />
+          Delete Transaction
+        </motion.button>
+
+        <motion.button
+          className="save-memory-button"
+          onClick={save}
+          disabled={saving}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          {saving ? (
+            <motion.span
+              className="save-shimmer"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            />
+          ) : (
+            <>
+              <Sparkles size={18} />
+              Save Memory
+            </>
+          )}
+        </motion.button>
+      </div>
     </motion.aside>
   );
 }
@@ -188,11 +292,15 @@ function Section({ title, children }) {
 
 function InfoTile({ icon, label, value }) {
   return (
-    <div className="info-tile">
+    <motion.div
+      className="info-tile"
+      whileHover={{ scale: 1.02, y: -2 }}
+      transition={{ type: "spring", stiffness: 300 }}
+    >
       <div className="info-icon">{icon}</div>
       <p>{label}</p>
       <h4>{value}</h4>
-    </div>
+    </motion.div>
   );
 }
 
@@ -205,7 +313,7 @@ function StatusSelector({ transaction, onUpdate }) {
 
       <div className="status-selector">
         {statuses.map((status) => (
-          <button
+          <motion.button
             key={status}
             onClick={() =>
               onUpdate({
@@ -218,12 +326,14 @@ function StatusSelector({ transaction, onUpdate }) {
               })
             }
             className={transaction.status === status ? "selected-status" : ""}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             {status === "settled" && transaction.status === status && (
               <Check size={15} />
             )}
             {status}
-          </button>
+          </motion.button>
         ))}
       </div>
     </div>

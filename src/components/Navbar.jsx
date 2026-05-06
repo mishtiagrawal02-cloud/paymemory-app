@@ -1,32 +1,51 @@
 import { motion } from "framer-motion";
-import { Plus, Wallet } from "lucide-react";
+import { Plus, Wallet, Sparkles } from "lucide-react";
 
 function Navbar({ onAdd }) {
   return (
     <motion.nav
-      initial={{ opacity: 0, y: -18 }}
+      initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col gap-4 rounded-[2rem] border border-white/10 bg-white/[0.07] p-5 shadow-2xl backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between"
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="nav"
     >
-      <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-300 text-slate-950">
-          <Wallet size={26} />
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+        className="flex items-center gap-4"
+      >
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition-opacity duration-300" />
+          <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-lg">
+            <Wallet size={28} />
+          </div>
         </div>
         <div>
-          <h2 className="text-2xl font-black">PayMemory</h2>
-          <p className="text-sm text-slate-400">
-            Financial memory layer for UPI
+          <h2 className="text-3xl font-black bg-gradient-to-r from-white to-violet-200 bg-clip-text text-transparent">
+            PayMemory
+          </h2>
+          <p className="text-sm font-semibold text-slate-400">
+            AI-Powered Financial Intelligence
           </p>
         </div>
-      </div>
+      </motion.div>
 
-      <button
+      <motion.button
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
         onClick={onAdd}
-        className="flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-950 hover:bg-cyan-200"
+        className="relative group overflow-hidden"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
-        <Plus size={18} />
-        Add Mock Transaction
-      </button>
+        <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-300 group-hover:from-violet-400 group-hover:to-fuchsia-400" />
+        <div className="relative flex items-center justify-center gap-2 px-6 py-3 text-sm font-black text-white">
+          <Sparkles size={18} className="animate-pulse" />
+          Add Transaction
+        </div>
+      </motion.button>
     </motion.nav>
   );
 }

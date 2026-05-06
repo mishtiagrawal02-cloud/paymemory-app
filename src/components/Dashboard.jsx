@@ -1,93 +1,159 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Navbar from "./Navbar";
+import DashboardHeader from "./DashboardHeader";
+import SummarySection from "./SummarySection";
+import TransactionList from "./TransactionList";
+import SearchFilterPanel from "./SearchFilterPanel";
+import TransactionDetails from "./TransactionDetails";
+import EmptyState from "./EmptyState";
+import AddTransactionModal from "./AddTransactionModal";
+import RemindersPanel from "./RemindersPanel";
+import { useTransactions } from "../hooks/useTransactions.jsx";
+import { useFilters } from "../hooks/useFilters.jsx";
+import { useFinancialHealth } from "../hooks/useFinancialHealth.jsx";
+import { useToast } from "../context/ToastContext.jsx";
+import { Wallet, TrendingUp, Clock3, AlertCircle } from "lucide-react";
 
-function DashboardHeader({ score }) {
-  return (
-    <section className="hero-section">
-      <div className="hero-copy">
-        <div className="hero-badge">
-          <Sparkles size={16} />
-          AI-style financial memory dashboard
-        </div>
+function Dashboard() {
+  const [selectedId, setSelectedId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const { transactions, addTransaction, updateTransaction, deleteTransaction, stats } = useTransactions();
+  const { search, setSearch, activeCategory, setActiveCategory, activeStatus, setActiveStatus, sortBy, setSortBy, filteredTransactions, resetFilters } = useFilters(transactions);
+  const { healthScore, healthStatus } = useFinancialHealth(transactions);
+  const { success, error } = useToast();
 
-        <h1>Remember every UPI payment with context.</h1>
+  const summaryCards = [
+    {
+      title: "Total Received",
+      value: stats.totalReceived,
+      type: "money",
+      icon: <TrendingUp />,
+    },
+    {
+      title: "Total Spent",
+      value: stats.totalSpent,
+      type: "money",
+      icon: <Wallet />,
+    },
+    {
+      title: "Pending",
+      value: stats.pendingCount,
+      type: "number",
+      icon: <Clock3 />,
+    },
+    {
+      title: "Overdue",
+      value: stats.overdueCount,
+      type: "number",
+      icon: <AlertCircle />,
+    },
+  ];
 
-        <p>
-          Track transactions, pending money, scheduled payments, split bills,
-          receipts, reminders, insights, and financial score.
-        </p>
-      </div>
+  const selectedTransaction =
+    selectedId !== null
+      ? transactions.find((t) => t.id === selectedId)
+      : null;
 
-      <FinancialGauge score={score} />
-    </section>
-  );
-}
+  function handleAddTransaction(transactionData) {
+    addTransaction(transactionData);
+    success("Transaction added successfully!");
+  }
 
-function FinancialGauge({ score }) {
-  const [displayScore, setDisplayScore] = useState(0);
+  function handleUpdateTransaction(updatedTransaction) {
+    updateTransaction(updatedTransaction.id, updatedTransaction);
+    success("Transaction updated successfully!");
+  }
+
+  function handleDeleteTransaction(id) {
+    deleteTransaction(id);
+    setSelectedId(null);
+    success("Transaction deleted successfully!");
+  }
+
+  function handleOpenModal() {
+    setIsModalOpen(true);
+  }
+
+  function handleCloseModal() {
+    setIsModalOpen(false);
+  }
 
   useEffect(() => {
-    let frame;
-    const duration = 1200;
-    const start = performance.now();
-
-    function animate(now) {
-      const progress = Math.min((now - start) / duration, 1);
-
-      // Elastic-like ease: f(t) = 1 - (1 - t)^4
-      const eased = 1 - Math.pow(1 - progress, 4);
-
-      setDisplayScore(Math.round(eased * score));
-
-      if (progress < 1) {
-        frame = requestAnimationFrame(animate);
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && isModalOpen) {
+        handleCloseModal();
       }
-    }
+    };
 
-    frame = requestAnimationFrame(animate);
-
-    return () => cancelAnimationFrame(frame);
-  }, [score]);
-
-  const radius = 82;
-  const circumference = 2 * Math.PI * radius;
-  const progress = circumference - (displayScore / 100) * circumference;
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isModalOpen]);
 
   return (
-    <motion.div
-      className="score-gauge-card"
-      initial={{ opacity: 0, scale: 0.9, y: 24 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: "easeOut" }}
-    >
-      <div className="gauge-glow" />
+    <div className="dashboard-container">
+      <Navbar onAdd={handleOpenModal} />
 
-      <svg className="score-gauge" viewBox="0 0 220 220">
-        <circle
-          cx="110"
-          cy="110"
-          r={radius}
-          className="gauge-track"
-        />
+      <DashboardHeader score={healthScore} healthStatus={healthStatus} />
 
-        <circle
-          cx="110"
-          cy="110"
-          r={radius}
-          className="gauge-progress"
-          strokeDasharray={circumference}
-          strokeDashoffset={progress}
-        />
-      </svg>
+      <SummarySection cards={summaryCards} />
 
-      <div className="gauge-content">
-        <span>Financial Memory Score</span>
-        <strong>{displayScore}</strong>
-        <small>out of 100</small>
+      <div className="main-grid">
+        <div className="left-panel">
+          <SearchFilterPanel
+            search={search}
+            setSearch={setSearch}
+            categories={["All", "Food", "Transport", "Shopping", "Bills", "Rent", "Loan", "Subscription", "Travel", "College", "Project", "Other"]}
+            statuses={["All", "settled", "pending", "follow-up", "overdue"]}
+            activeCategory={activeCategory}
+            setActiveCategory={setActiveCategory}
+            activeStatus={activeStatus}
+            setActiveStatus={setActiveStatus}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            onResetFilters={resetFilters}
+          />
+
+          {filteredTransactions.length === 0 ? (
+            <EmptyState onClearFilters={resetFilters} />
+          ) : (
+            <TransactionList
+              transactions={filteredTransactions}
+              selectedId={selectedId}
+              setSelectedId={setSelectedId}
+            />
+          )}
+        </div>
+
+        <div className="right-panel">
+          <AnimatePresence mode="wait">
+            {selectedTransaction ? (
+              <TransactionDetails
+                key={`details-${selectedTransaction.id}`}
+                transaction={selectedTransaction}
+                onUpdate={handleUpdateTransaction}
+                onDelete={handleDeleteTransaction}
+              />
+            ) : (
+              <RemindersPanel
+                key="reminders-panel"
+                transactions={transactions}
+                onSelectTransaction={setSelectedId}
+                onUpdateTransaction={handleUpdateTransaction}
+              />
+            )}
+          </AnimatePresence>
+        </div>
       </div>
-    </motion.div>
+
+      <AddTransactionModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onAdd={handleAddTransaction}
+      />
+    </div>
   );
 }
 
-export default DashboardHeader;
+export default Dashboard;

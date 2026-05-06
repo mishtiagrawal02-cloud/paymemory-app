@@ -1,14 +1,43 @@
-import { Search } from "lucide-react";
+import { motion } from "framer-motion";
+import { Search, Sparkles } from "lucide-react";
 
-function EmptyState() {
+function EmptyState({ onClearFilters }) {
   return (
-    <div className="rounded-[2rem] border border-dashed border-white/10 bg-white/[0.05] p-10 text-center">
-      <Search className="mx-auto text-cyan-200" size={42} />
-      <h3 className="mt-4 text-xl font-black">No transaction found</h3>
-      <p className="mt-2 text-sm text-slate-400">
-        Try changing your search or filters.
-      </p>
-    </div>
+    <motion.div
+      className="empty-state-wrapper"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="empty-state">
+        <motion.div
+          className="empty-icon"
+          animate={{
+            y: [0, -10, 0],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        >
+          <Search size={48} className="text-violet-400" />
+        </motion.div>
+        <h3 className="empty-title">No transactions found</h3>
+        <p className="empty-description">
+          Try adjusting your search or filters to find what you're looking for.
+        </p>
+        <motion.button
+          className="empty-cta"
+          onClick={onClearFilters}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Sparkles size={16} />
+          Clear Filters
+        </motion.button>
+      </div>
+    </motion.div>
   );
 }
 

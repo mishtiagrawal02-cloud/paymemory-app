@@ -4,31 +4,40 @@ export function formatMoney(amount) {
 
 export function getCategoryTotal(transactions, category) {
   return transactions
-    .filter((item) => item.category === category && item.type === "sent")
+    .filter((item) => item.category === category && item.type === "spent")
     .reduce((sum, item) => sum + item.amount, 0);
 }
 
-export function getStats(transactions) {
-  const totalSent = transactions
-    .filter((item) => item.type === "sent")
-    .reduce((sum, item) => sum + item.amount, 0);
-
+export function calculateStats(transactions) {
   const totalReceived = transactions
     .filter((item) => item.type === "received")
     .reduce((sum, item) => sum + item.amount, 0);
 
-  const pending = transactions.reduce(
-    (sum, item) => sum + item.pendingAmount,
-    0
-  );
+  const totalSpent = transactions
+    .filter((item) => item.type === "spent")
+    .reduce((sum, item) => sum + item.amount, 0);
+
+  const pendingCount = transactions.filter(
+    (item) => item.status === "pending"
+  ).length;
+
+  const overdueCount = transactions.filter(
+    (item) => item.status === "overdue"
+  ).length;
 
   const reminders = transactions.filter((item) => item.reminder).length;
 
   const documented = transactions.filter(
-    (item) => item.note && item.tags.length && item.attachment
+    (item) => item.note && item.tags.length > 0
   ).length;
 
-  const score = Math.round((documented / transactions.length) * 100);
+  const score = transactions.length > 0
+    ? Math.round((documented / transactions.length) * 100)
+    : 72;
 
-  return { totalSent, totalReceived, pending, reminders, score };
+  return { totalReceived, totalSpent, pendingCount, overdueCount, reminders, score };
+}
+
+export function getStats(transactions) {
+  return calculateStats(transactions);
 }
